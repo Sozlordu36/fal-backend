@@ -1,12 +1,12 @@
 from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-import openai
+from openai import OpenAI
 import os
 from dotenv import load_dotenv
 import base64
 
 load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 app = FastAPI()
 
@@ -24,7 +24,7 @@ async def yorumla(image: UploadFile = File(...)):
         content = await image.read()
         base64_image = base64.b64encode(content).decode("utf-8")
 
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-4o",
             messages=[
                 {
@@ -42,8 +42,7 @@ async def yorumla(image: UploadFile = File(...)):
             max_tokens=800
         )
 
-        return {"yorum": response.choices[0].message["content"]}
+        return {"yorum": response.choices[0].message.content}
 
     except Exception as e:
         return {"yorum": f"Bacım bir hata oluştu: {str(e)}"}
-
